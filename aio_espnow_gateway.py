@@ -41,16 +41,12 @@ async def espnow_to_tcp_server(espn):
     async for mac, msg in espn:
         if not _tcpwriter:
             continue
-        _tcpwriter.write(mac)
-        _tcpwriter.write(bytes([len(msg)]))
-        _tcpwriter.write(msg)
+        _tcpwriter.write(mac + bytes([len(msg)]) + msg)
         await _tcpwriter.drain()
 
 
-async def main(addr="0.0.0.0", port=8888, espn=AIOESPNow()):
+async def main(espn, addr="0.0.0.0", port=8888):
     global _server
-
-    espn.active(True)
 
     tsk = create_task(espnow_to_tcp_server(espn))
     server = await start_server(
