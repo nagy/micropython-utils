@@ -1,15 +1,21 @@
-class MessageRouter(dict):
-    @staticmethod
-    async def fallback(to, msg):
-        pass
-
-    async def call(self, to, msg):
-        target = self.get(to, self.fallback)
-        if type(target) == int:
-            return await self.call(target, msg)
-        return await self.get(to, self.fallback)(to, msg)
+from machine import unique_id
 
 
-MR = MessageRouter()
-# MR[123] = lambda to, msg: print("xxx> ", to, msg)
-# MR[int.from_bytes(machine.unique_id(),"little")] = lambda _to, msg: exec(msg, locals(), globals())
+async def _aexec(_to, msg):
+    return exec(msg, locals(), globals())
+
+
+_route_table = {
+    int.from_bytes(unique_id(), "big"): _aexec
+    # ...
+}
+
+
+async def route(to, msg):
+    return await _route_table[to](to, msg)
+
+
+async def main(espn):
+    async for mac, msg in espn:
+        to, rest = int.from_bytes(msg[0:6], "big"), msg[6:]
+        await route(to, rest)

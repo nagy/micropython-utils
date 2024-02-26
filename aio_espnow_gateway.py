@@ -1,5 +1,4 @@
 from asyncio import create_task, start_server
-from aioespnow import AIOESPNow
 
 _tcpwriter = None
 _server = None
