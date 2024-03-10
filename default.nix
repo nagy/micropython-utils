@@ -5,8 +5,12 @@
 {
   default = micropython.overrideAttrs {
     preBuild = ''
-      cp ${lib.cleanSource ./.}/aio_espnow_gateway.py ports/esp32/modules/
-      cp ${lib.cleanSource ./.}/message_router.py     ports/esp32/modules/
+      cp ${lib.cleanSource ./.}/printservice.py ports/esp32/modules/
+      cp ${lib.cleanSource ./.}/echoservice.py ports/esp32/modules/
+      cp ${lib.cleanSource ./.}/espnserver.py ports/esp32/modules/
+      cp ${lib.cleanSource ./.}/tcpserver.py ports/esp32/modules/
+      cp ${lib.cleanSource ./.}/udpserver.py ports/esp32/modules/
+      cp ${lib.cleanSource ./.}/router.py ports/esp32/modules/
     '';
   };
 
@@ -56,14 +60,14 @@
         codes = [
           "udpserver.create_task(2222,_route_table)"
           "_route_table[3333]=udpserver.make_udp_sender(3333, 'third')"
-          "_route_table[4]=udpserver.make_udp_sender(1111, 'first')"
+          "_route_table.fallback=udpserver.make_udp_sender(1111, 'first')"
         ];
       };
       third = mkMachineWithRouteTable { 
         codes = [
           "udpserver.create_task(3333,_route_table)"
-          "_route_table[3333]=echo_service"
-          "_route_table[4]=udpserver.make_udp_sender(2222, 'second')"
+          "_route_table[3333]=echoservice.make_echo_service(_route_table)"
+          "_route_table.fallback=udpserver.make_udp_sender(2222, 'second')"
         ];
       };
     };
