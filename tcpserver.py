@@ -6,12 +6,12 @@ def create_task(port, _route_table):
         # register this client
         _route_table[remote_port] = lambda frm, to, msg: writer.awrite(msg)
         print(_route_table.keys())
-        while l := await reader.read(1024):
-            target, msg = l.split(b" ", 1)
-            target = int(target)
+        firstline = await reader.readline()
+        target = int(firstline)
+        while msg := await reader.read(1024):
             try:
                 await _route_table(remote_port, target, msg)
-            except Error as err:
+            except Exception as err:
                 print(err)
                 break
         del _route_table[remote_port]

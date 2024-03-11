@@ -54,12 +54,14 @@
           "tcpserver.create_task(8083,_route_table)"
           "udpserver.create_task(1111,_route_table)"
           "_route_table[3333]=udpserver.make_udp_sender(2222,'second')"
+          "_route_table[3334]=_route_table[3333]"
         ];
       };
       second = mkMachineWithRouteTable { 
         codes = [
           "udpserver.create_task(2222,_route_table)"
           "_route_table[3333]=udpserver.make_udp_sender(3333, 'third')"
+          "_route_table[3334]=_route_table[3333]"
           "_route_table.fallback=udpserver.make_udp_sender(1111, 'first')"
         ];
       };
@@ -67,6 +69,7 @@
         codes = [
           "udpserver.create_task(3333,_route_table)"
           "_route_table[3333]=echoservice.make_echo_service(_route_table)"
+          "_route_table[3334]=pingservice.make_pinger_service(_route_table)"
           "_route_table.fallback=udpserver.make_udp_sender(2222, 'second')"
         ];
       };
