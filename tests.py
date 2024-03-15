@@ -21,7 +21,10 @@ def test_route():
     assert str == "foo"
     assert bytes == b"foobytes"
 
-    # test fallback
+
+def test_fallback():
+    str = ""
+
     class TestRoute(Route):
         def fallback(self, frm, trgt, msg):
             nonlocal str
@@ -52,27 +55,27 @@ def test_route_spotty():
     spot = ""
     counter = 0
 
-    def _onesenderreceiver(frm, to, msg):
+    def onesenderreceiver(frm, to, msg):
         assert frm
         yield (to, 2, msg)
 
-    def _twoforwarder(frm, to, msg):
+    def twoforwarder_spotty(frm, to, msg):
         nonlocal counter
         assert frm
         counter += 1
         if counter % 2 == 1:
             yield (to, 3, msg)
 
-    def _threereceiver(frm, to, msg):
+    def threereceiver(frm, to, msg):
         nonlocal spot
         assert frm, to
         spot += msg
 
     spotty_route = Route(
         {
-            1: _onesenderreceiver,
-            2: _twoforwarder,
-            3: _threereceiver,
+            1: onesenderreceiver,
+            2: twoforwarder_spotty,
+            3: threereceiver,
         }
     )
     for _ in range(10):

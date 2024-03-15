@@ -94,7 +94,8 @@
       second.wait_for_unit("default.target")
       third.wait_for_unit("default.target")
       first.sleep(10) # needed for tshark
-      first.succeed("timeout 10 nc localhost 8083 <<< \"3003\nfba20efd7e7b4343b8f7c4107fd7f0f4\"||true")
+      res = first.succeed("timeout 10 nc localhost 8083 <<< \"3003\nfba20efd7e7b4343b8f7c4107fd7f0f4\"||true")
+      assert "echo:33" in res
       first.sleep(10) # needed for tshark
       first.systemctl("stop capture.service")
       first.copy_from_vm("/var/lib/first.pcap")
