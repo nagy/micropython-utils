@@ -25,8 +25,9 @@
           {
             environment.systemPackages = [ micropython pkgs.curl pkgs.socat ];
             # networking.firewall.allowedTCPPorts = [ 8083 ];
-            # networking.firewall.allowedUDPPorts = [ 1111 2222 ];
+            # networking.firewall.allowedUDPPorts = [ 3001 3002 ];
             networking.firewall.enable = false;
+            networking.enableIPv6 = false;
             systemd.services.service_under_test = {
               wantedBy = [ "multi-user.target" ];
               serviceConfig = {
@@ -47,30 +48,30 @@
         systemd.services.capture = {
           wantedBy = [ "network.target" ];
           serviceConfig.ExecStart = ''
-            ${pkgs.wireshark-cli}/bin/tshark -i eth1 -w /var/lib/capture.pcap
+            ${pkgs.wireshark-cli}/bin/tshark -i lo -i eth1 -f 'tcp or udp' -w /var/lib/first.pcap
           '';
         };
         codes = [
           "tcpserver.create_task(8083,_route_table)"
-          "udpserver.create_task(1111,_route_table)"
-          "_route_table[3333]=udpserver.make_udp_sender(2222,'second')"
-          "_route_table[3334]=_route_table[3333]"
+          "udpserver.create_task(3001,_route_table)"
+          "_route_table[3003]=udpserver.make_udp_sender(3002,'second')"
+          "_route_table[3334]=_route_table[3003]"
         ];
       };
-      second = mkMachineWithRouteTable { 
+      second = mkMachineWithRouteTable {
         codes = [
-          "udpserver.create_task(2222,_route_table)"
-          "_route_table[3333]=udpserver.make_udp_sender(3333, 'third')"
-          "_route_table[3334]=_route_table[3333]"
-          "_route_table.fallback=udpserver.make_udp_sender(1111, 'first')"
+          "udpserver.create_task(3002,_route_table)"
+          "_route_table[3003]=udpserver.make_udp_sender(3003, 'third')"
+          "_route_table[3334]=_route_table[3003]"
+          "_route_table.fallback=udpserver.make_udp_sender(3001, 'first')"
         ];
       };
-      third = mkMachineWithRouteTable { 
+      third = mkMachineWithRouteTable {
         codes = [
-          "udpserver.create_task(3333,_route_table)"
-          "_route_table[3333]=echoservice.make_echo_service(_route_table)"
+          "udpserver.create_task(3003,_route_table)"
+          "_route_table[3003]=echoservice.make_echo_service(_route_table)"
           "_route_table[3334]=pingservice.make_pinger_service(_route_table)"
-          "_route_table.fallback=udpserver.make_udp_sender(2222, 'second')"
+          "_route_table.fallback=udpserver.make_udp_sender(3002, 'second')"
         ];
       };
     };
@@ -80,10 +81,10 @@
       second.wait_for_unit("default.target")
       third.wait_for_unit("default.target")
       first.sleep(10) # needed for tshark
-      ...
+      first.succeed("timeout 10 nc localhost 8083 <<< \"3003\nfba20efd7e7b4343b8f7c4107fd7f0f4\"||true")
       first.sleep(10) # needed for tshark
       first.systemctl("stop capture.service")
-      first.copy_from_vm("/var/lib/capture.pcap")
+      first.copy_from_vm("/var/lib/first.pcap")
     '';
   });
 
