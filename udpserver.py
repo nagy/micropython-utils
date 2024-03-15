@@ -12,7 +12,7 @@ def create_task(port, _route_table):
     def make_udp_sender(port, host="127.0.0.1"):
         _addr_info = socket.getaddrinfo(host, port)[0]
 
-        async def sender(frm, to, msg):
+        def sender(frm, to, msg):
             print("udpsender", frm, to, msg)
             _udpsocket.sendto(f"{frm} {to} ".encode() + msg, _addr_info[-1])
 
@@ -29,12 +29,10 @@ def create_task(port, _route_table):
         while True:
             try:
                 if poller.poll(polltimeout):
-                    buf, addr = _udpsocket.recvfrom(max_packet)
+                    buf, _addr = _udpsocket.recvfrom(max_packet)
                     # remote_port = int.from_bytes(addr[2:4], "big")
                     frm, trgt, msg = buf.split(b" ", 2)
-                    frm = int(frm)
-                    trgt = int(trgt)
-                    await _route_table(frm, trgt, msg)
+                    _route_table(int(frm), int(trgt), msg)
                 await asyncio.sleep(0)
             except asyncio.core.CancelledError:
                 _udpsocket.close()

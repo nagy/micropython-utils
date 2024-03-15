@@ -10,9 +10,9 @@ def create_task(_route_table):
     def make_espn_handler(peer):
         espn.add_peer(peer)
 
-        async def espn_handler(frm, to, msg):
+        def espn_handler(frm, to, msg):
             print("espn_handler", frm, to, msg)
-            await espn.asend(peer, f"{frm} {to} ".encode() + msg)
+            espn.send(peer, f"{frm} {to} ".encode() + msg)
 
         return espn_handler
 

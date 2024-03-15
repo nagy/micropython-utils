@@ -7,7 +7,6 @@
 {
   default = micropython.overrideAttrs {
     preBuild = ''
-      cp ${lib.cleanSource ./.}/printservice.py ports/esp32/modules/
       cp ${lib.cleanSource ./.}/echoservice.py ports/esp32/modules/
       cp ${lib.cleanSource ./.}/espnserver.py ports/esp32/modules/
       cp ${lib.cleanSource ./.}/tcpserver.py ports/esp32/modules/
@@ -21,7 +20,7 @@
     {
       name = "micropython-utils-test";
       # flowchart LR
-      #    A["⒈ TCP-L:8080"] <-->|UDP| B["⒉ Middle box, 50% drop rate"]
+      #    A["⒈ TCP-L:8083"] <-->|UDP| B["⒉ Middle box, 50% drop rate"]
       #    B <-->|UDP| C["⒊ 🪞 Mirror"]
       nodes =
         let
@@ -85,7 +84,7 @@
           third = mkMachineWithRouteTable {
             codes = [
               "udpserver.create_task(3003,_route_table)"
-              "_route_table[3003]=echoservice.make_echo_service(_route_table)"
+              "_route_table[3003]=echoservice.echo_service"
               "_route_table[3334]=pingservice.make_pinger_service(_route_table)"
               "_route_table.fallback=udpserver.make_udp_sender(3002, 'second')"
             ];

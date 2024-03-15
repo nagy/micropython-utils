@@ -3,7 +3,6 @@ import asyncio
 import tcpserver
 import udpserver
 import echoservice
-import printservice
 import pingservice
 from router import _route_table
 

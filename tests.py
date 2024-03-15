@@ -1,48 +1,80 @@
-import pytest
-import asyncio
-
-# import tcpserver
-# import udpserver
-# import echoservice
-# import printservice
-# import pingservice
-from router import _route_table
+from router import Route
 
 
-async def _mymsg(_frm, to, msg):
-    return f"hello from {to} " + msg
+def test_route():
+    str = ""
+    bytes = b""
+
+    def mymsg(frm, to, msg):
+        assert frm, to
+        nonlocal str
+        str += msg
+
+    def mybytes(frm, to, msg):
+        assert frm, to
+        nonlocal bytes
+        bytes += msg
+
+    route = Route({1: mymsg, 2: mybytes})
+    route(100, 1, "foo")
+    route(100, 2, b"foobytes")
+    assert str == "foo"
+    assert bytes == b"foobytes"
+
+    # test fallback
+    class TestRoute(Route):
+        def fallback(self, frm, trgt, msg):
+            nonlocal str
+            assert frm, trgt
+            str = msg
+
+    empty_route = TestRoute()
+    assert empty_route(100, 101, "hello") is None
+    empty_route(100, 101, "hello")
+    assert str == "hello"
 
 
-async def _mybytes(_frm, _to, _msg):
-    return b"hello bytes"
+def test_route_strings():
+    str = ""
+
+    def mymsg(frm, to, msg):
+        nonlocal str
+        assert frm, to
+        str += msg
+
+    route = Route({"first": mymsg, "second": mymsg})
+    route("pytest", "first", "foo")
+    route("pytest", "second", "foo")
+    assert str == "foofoo"
 
 
-@pytest.mark.asyncio
-async def test_route():
-    _route_table[1] = _mybytes
-    _route_table[2] = _mybytes
-    res = await _route_table(10, 1, "foo")
-    assert res == b"hello bytes"
+def test_route_spotty():
+    spot = ""
+    counter = 0
 
+    def _onesenderreceiver(frm, to, msg):
+        assert frm
+        yield (to, 2, msg)
 
-@pytest.mark.asyncio
-async def test_route_strings():
-    _route_table["first"] = _mymsg
-    _route_table["second"] = _mymsg
-    res = await _route_table("pytest", "first", "foo")
-    assert res == "hello from first foo"
-    res = await _route_table("pytest", "second", "foo")
-    assert res == "hello from second foo"
+    def _twoforwarder(frm, to, msg):
+        nonlocal counter
+        assert frm
+        counter += 1
+        if counter % 2 == 1:
+            yield (to, 3, msg)
 
+    def _threereceiver(frm, to, msg):
+        nonlocal spot
+        assert frm, to
+        spot += msg
 
-def test_route_strings_sync():
-    _route_table["first"] = lambda _frm, _to, _msg: "hello"
-    _route_table["second"] = lambda _frm, _to, _msg: "second"
-    res = _route_table("pytest", "first", "foo")
-    assert res == "hello"
-    res = _route_table("pytest", "second", "foo")
-    assert res == "second"
-    # the fallback is still a coroutine
-    fallbacked = _route_table("nonexistent", None, None)
-    assert "__await__" in dir(fallbacked)
-    assert None == asyncio.run(fallbacked)  # to skip warning
+    spotty_route = Route(
+        {
+            1: _onesenderreceiver,
+            2: _twoforwarder,
+            3: _threereceiver,
+        }
+    )
+    for _ in range(10):
+        spotty_route(10, 1, "forwardmsg")
+    assert spot == "forwardmsg" * 5

@@ -1,21 +1,14 @@
-import asyncio
-
-
 class Route(dict):
-    # fallback = lambda frm, trgt, msg: asyncio.sleep(0)
+    def fallback(self, frm, trgt, msg):
+        print("unrouted:", frm, trgt, msg)
 
-    async def fallback(self, frm, trgt, msg):
-        print("fallback", frm, trgt, msg)
-        await asyncio.sleep(0)
-
-    # this is a coroutine
     def __call__(self, frm, trgt, msg):
         if trgt in self:
-            return self[trgt](frm, trgt, msg)
+            ret = self[trgt](frm, trgt, msg) or []
+            for _2frm, _2trgt, _2msg in ret:
+                self(_2frm, _2trgt, _2msg)
         else:
-            return self.fallback(frm, trgt, msg)
+            self.fallback(frm, trgt, msg)
 
 
 _route_table = Route()
-
-print("_route_table.keys() =", _route_table.keys())
