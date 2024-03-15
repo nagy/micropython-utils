@@ -1,7 +1,7 @@
 import asyncio
 
 
-def make_pinger_service(_route_table, sleeptime=1):
+def make_pinger_service(route, sleeptime=1):
     frm = None
     to = None
 
@@ -10,7 +10,7 @@ def make_pinger_service(_route_table, sleeptime=1):
         while True:
             print("pinger_timer", frm, to)
             if frm and to:
-                _route_table(to, frm, "pong\n")
+                route(to, frm, "pong\n")
             await asyncio.sleep(sleeptime)
 
     asyncio.create_task(timer())

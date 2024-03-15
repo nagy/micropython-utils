@@ -1,4 +1,4 @@
-def create_task(_route_table):
+def create_task(route):
     import asyncio
     from aioespnow import AIOESPNow
 
@@ -21,6 +21,6 @@ def create_task(_route_table):
             frm, trgt, msg = msg.split(b" ", 2)
             frm = int(frm)
             trgt = int(trgt)
-            await _route_table[trgt](frm, trgt, msg)
+            await route[trgt](frm, trgt, msg)
 
     asyncio.create_task(serve_espn())

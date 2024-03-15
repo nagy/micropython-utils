@@ -11,4 +11,4 @@ class Route(dict):
             self.fallback(frm, trgt, msg)
 
 
-_route_table = Route()
+route = Route()

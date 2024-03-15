@@ -4,7 +4,7 @@ import tcpserver
 import udpserver
 import echoservice
 import pingservice
-from router import _route_table
+from router import route
 
 
 for code in sys.argv[1:]:

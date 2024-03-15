@@ -3,7 +3,7 @@ import select
 import socket
 
 
-def create_task(port, _route_table):
+def create_task(port, route):
     _udpsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     _addr_info = socket.getaddrinfo("0.0.0.0", port)[0]
 
@@ -32,7 +32,7 @@ def create_task(port, _route_table):
                     buf, _addr = _udpsocket.recvfrom(max_packet)
                     # remote_port = int.from_bytes(addr[2:4], "big")
                     frm, trgt, msg = buf.split(b" ", 2)
-                    _route_table(int(frm), int(trgt), msg)
+                    route(int(frm), int(trgt), msg)
                 await asyncio.sleep(0)
             except asyncio.core.CancelledError:
                 _udpsocket.close()

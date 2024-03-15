@@ -65,26 +65,26 @@
             '';
           };
           codes = [
-            "tcpserver.create_task(8083,_route_table)"
-            "udpserver.create_task(3001,_route_table)"
-            "_route_table[3003]=udpserver.make_udp_sender(3002,'second')"
-            "_route_table[3334]=_route_table[3003]"
+            "tcpserver.create_task(8083,route)"
+            "udpserver.create_task(3001,route)"
+            "route[3003]=udpserver.make_udp_sender(3002,'second')"
+            "route[3334]=route[3003]"
           ];
         };
         second = mkMachineWithRouteTable {
           codes = [
-            "udpserver.create_task(3002,_route_table)"
-            "_route_table[3003]=udpserver.make_udp_sender(3003, 'third')"
-            "_route_table[3334]=_route_table[3003]"
-            "_route_table.fallback=udpserver.make_udp_sender(3001, 'first')"
+            "udpserver.create_task(3002,route)"
+            "route[3003]=udpserver.make_udp_sender(3003, 'third')"
+            "route[3334]=route[3003]"
+            "route.fallback=udpserver.make_udp_sender(3001, 'first')"
           ];
         };
         third = mkMachineWithRouteTable {
           codes = [
-            "udpserver.create_task(3003,_route_table)"
-            "_route_table[3003]=echoservice.echo_service"
-            "_route_table[3334]=pingservice.make_pinger_service(_route_table)"
-            "_route_table.fallback=udpserver.make_udp_sender(3002, 'second')"
+            "udpserver.create_task(3003,route)"
+            "route[3003]=echoservice.echo_service"
+            "route[3334]=pingservice.make_pinger_service(route)"
+            "route.fallback=udpserver.make_udp_sender(3002, 'second')"
           ];
         };
       };
