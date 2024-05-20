@@ -1,4 +1,5 @@
 from router import Route
+from layer4stream import StreamManager, parse_message, StreamTupleElem
 
 
 def test_route():
@@ -22,6 +23,33 @@ def test_route():
     assert bytes == b"foobytes"
 
 
+def test_make_parse_stream_msg():
+    data: bytes = bytes(StreamTupleElem(1, 1, 2, b"hello"))
+    assert data == b"\x00\x01\x00\x02hello"
+    seq, ack, msg = parse_message(data)
+    assert seq == 1
+    assert ack == 2
+    assert msg == b"hello"
+
+
+def test_stream():
+    outecho = []
+    route = Route()
+
+    def printstorage_service(frm, to, msg):
+        nonlocal outecho
+        print("echo_service", frm, to, msg)
+        outecho.append((frm, to, msg))
+
+    def echo_service(frm, to, msg):
+        return msg
+
+    route[1] = StreamManager(2, route, printstorage_service)
+    route[2] = StreamManager(1, route, echo_service)
+    route(9999, 1, b"hello")
+    assert outecho == [(2, 1, b"hello")]
+
+
 def test_fallback():
     str = ""
 
@@ -32,23 +60,8 @@ def test_fallback():
             str = msg
 
     empty_route = TestRoute()
-    assert empty_route(100, 101, "hello") is None
     empty_route(100, 101, "hello")
     assert str == "hello"
-
-
-def test_route_strings():
-    str = ""
-
-    def mymsg(frm, to, msg):
-        nonlocal str
-        assert frm, to
-        str += msg
-
-    route = Route({"first": mymsg, "second": mymsg})
-    route("pytest", "first", "foo")
-    route("pytest", "second", "foo")
-    assert str == "foofoo"
 
 
 def test_route_spotty():

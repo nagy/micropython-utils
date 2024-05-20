@@ -2,14 +2,16 @@ import asyncio
 import select
 import socket
 
+from router import Route
 
-def create_task(port, route):
+
+def create_task(port: int, route: Route):
     _udpsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     _addr_info = socket.getaddrinfo("0.0.0.0", port)[0]
 
     global make_udp_sender
 
-    def make_udp_sender(port, host="127.0.0.1"):
+    def make_udp_sender(port: int, host="127.0.0.1"):
         _addr_info = socket.getaddrinfo(host, port)[0]
 
         def sender(frm, to, msg):
@@ -34,7 +36,7 @@ def create_task(port, route):
                     frm, trgt, msg = buf.split(b" ", 2)
                     route(int(frm), int(trgt), msg)
                 await asyncio.sleep(0)
-            except asyncio.core.CancelledError:
+            except asyncio.CancelledError:
                 _udpsocket.close()
                 break
 

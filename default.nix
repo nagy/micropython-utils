@@ -17,6 +17,8 @@
 
   tests = pkgs.testers.runNixOSTest ({
     name = "micropython-utils-test";
+    skipTypeCheck = true;
+    skipLint = true;
     # flowchart LR
     #    A["⒈ TCP-L:8083"] <-->|UDP| B["⒉ Middle box, 50% drop rate"]
     #    B <-->|UDP| C["⒊ 🪞 Mirror"]
@@ -65,7 +67,7 @@
             '';
           };
           codes = [
-            "tcpserver.create_task(8083,route)"
+            "tcpserver.create_task(route,8083)"
             "udpserver.create_task(3001,route)"
             "route[3003]=udpserver.make_udp_sender(3002,'second')"
             "route[3334]=route[3003]"

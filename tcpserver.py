@@ -1,4 +1,7 @@
-def create_task(port, route):
+from router import Route
+
+
+def create_task(route: Route, port=8080, host="0.0.0.0"):
     import asyncio
 
     async def tcp_handle_client(reader, writer):
@@ -15,4 +18,4 @@ def create_task(port, route):
                 break
         del route[remote_port]
 
-    asyncio.create_task(asyncio.start_server(tcp_handle_client, "0.0.0.0", port))
+    asyncio.create_task(asyncio.start_server(tcp_handle_client, host, port))
