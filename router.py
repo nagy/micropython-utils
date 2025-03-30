@@ -1,5 +1,5 @@
 class Route(dict):
-    def fallback(self, frm, trgt, msg):
+    async def fallback(self, frm, trgt, msg):
         print("unrouted:", frm, trgt, msg)
 
     def __call__(self, frm, trgt, msg):
@@ -7,8 +7,9 @@ class Route(dict):
             ret = self[trgt](frm, trgt, msg) or []
             for _2frm, _2trgt, _2msg in ret:
                 self(_2frm, _2trgt, _2msg)
+            return ret
         else:
-            self.fallback(frm, trgt, msg)
+            return self.fallback(frm, trgt, msg)
 
 
 route = Route()

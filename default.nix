@@ -5,15 +5,21 @@
 }:
 
 {
-  default = micropython.overrideAttrs {
-    preBuild = ''
-      cp ${lib.cleanSource ./.}/echoservice.py ports/esp32/modules/
-      cp ${lib.cleanSource ./.}/espnserver.py ports/esp32/modules/
-      cp ${lib.cleanSource ./.}/tcpserver.py ports/esp32/modules/
-      cp ${lib.cleanSource ./.}/udpserver.py ports/esp32/modules/
-      cp ${lib.cleanSource ./.}/router.py ports/esp32/modules/
-    '';
-  };
+  default = micropython.overrideAttrs (
+    {
+      preBuild ? "",
+      ...
+    }:
+    {
+      preBuild =
+        preBuild
+        + ''
+          cp ${lib.cleanSource ./.}/espnserver.py ports/esp32/modules/
+          cp ${lib.cleanSource ./.}/udpserver.py ports/esp32/modules/
+          cp ${lib.cleanSource ./.}/router.py ports/esp32/modules/
+        '';
+    }
+  );
 
   tests = pkgs.testers.runNixOSTest ({
     name = "micropython-utils-test";
